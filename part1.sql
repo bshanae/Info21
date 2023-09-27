@@ -1,130 +1,148 @@
--- TYPES -------------------------------------------------------------------------------------------
+-- TYPES --------------------------------------------------------------------------------------------------------------
 
-DROP TYPE IF EXISTS CheckStatus CASCADE;
-CREATE TYPE CheckStatus AS ENUM (
-	'Start',
-	'Success',
-	'Failure'
-);
+drop type if exists CheckStatus cascade;
+create type CheckStatus as ENUM ( 'Start', 'Success', 'Failure' );
 
-DROP TYPE IF EXISTS UserNickname CASCADE;
-CREATE DOMAIN UserNickname AS VARCHAR(30);
+drop type if exists UserNickname cascade;
+create domain UserNickname as VARCHAR(30);
 
-DROP TYPE IF EXISTS TaskName CASCADE;
-CREATE DOMAIN TaskName AS VARCHAR(100);
+drop type if exists TaskName cascade;
+create domain TaskName as VARCHAR(100);
 
--- PROCEDURES ---------------------------------------------------------------------------------------
+-- PROCEDURES ----------------------------------------------------------------------------------------------------------
 
-DROP PROCEDURE IF EXISTS LoadCsv;
-CREATE PROCEDURE LoadCsv(tablename text, filename text, separator text)
-AS $$
-DECLARE
-BEGIN
-	EXECUTE FORMAT(
-    'COPY %s FROM ''%s'' DELIMITER ''%s'' NULL AS ''null''',
-		tablename,
-		filename,
-		separator);
-END;
+drop procedure if exists LoadCsv;
+create procedure LoadCsv(tablename text, filename text, separator text) as
 $$
-LANGUAGE 'plpgsql';
+declare
+    dir constant varchar := '/Users/v.belchenko/Workspace/Info21/data/';
+begin
+    execute format('COPY %s FROM ''%s'' DELIMITER ''%s'' CSV HEADER', tablename, dir || filename, separator);
+end;
+$$ language 'plpgsql';
 
--- TABLES : PEERS -----------------------------------------------------------------------------------
+-- TABLES : PEERS ------------------------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS Peers CASCADE;
-CREATE TABLE Peers (
-  Nickname UserNickname PRIMARY KEY,
-  Birthday DATE
+drop table if exists Peers cascade;
+create table Peers
+(
+    Nickname UserNickname primary key,
+    Birthday DATE
 );
 
--- TABLES : TASKS -----------------------------------------------------------------------------------
+call LoadCsv('Peers', 'peers.csv', ',');
 
-DROP TABLE IF EXISTS Tasks CASCADE;
-CREATE TABLE Tasks (
-  Title TaskName PRIMARY KEY,
-	ParentTask TaskName REFERENCES Tasks(Title),
-  MaxXP INT NOT NULL
+-- TABLES : TASKS ------------------------------------------------------------------------------------------------------
+
+drop table if exists Tasks cascade;
+create table Tasks
+(
+    Title      TaskName primary key,
+    ParentTask TaskName references Tasks (Title),
+    MaxXP      INT not null
 );
 
-CALL LoadCsv('Tasks', '/Users/v.belchenko/Desktop/tasks.csv', ',');
+call LoadCsv('Tasks', 'tasks.csv', ',');
 
--- TABLES : CHECKS ----------------------------------------------------------------------------------
+-- TABLES : CHECKS -----------------------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS Checks CASCADE;
-CREATE TABLE Checks (
-  ID SERIAL PRIMARY KEY,
-  Peer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  Task TaskName NOT NULL REFERENCES Tasks(Title),
-  Date DATE NOT NULL
+drop table if exists Checks cascade;
+create table Checks
+(
+    ID   SERIAL primary key,
+    Peer UserNickname not null references Peers (Nickname),
+    Task TaskName     not null references Tasks (Title),
+    Date DATE         not null
 );
 
--- TABLES : P2P -------------------------------------------------------------------------------------
+call LoadCsv('Checks', 'checks.csv', ',');
 
-DROP TABLE IF EXISTS P2P CASCADE;
-CREATE TABLE P2P (
-  ID SERIAL PRIMARY KEY,
-  CheckID INT NOT NULL REFERENCES Checks(ID),
-  CheckingPeer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  State CheckStatus NOT NULL,
-  Time TIMESTAMP NOT NULL
+-- TABLES : P2P --------------------------------------------------------------------------------------------------------
+
+drop table if exists P2P cascade;
+create table P2P
+(
+    ID           SERIAL primary key,
+    CheckID      INT          not null references Checks (ID),
+    CheckingPeer UserNickname not null references Peers (Nickname),
+    State        CheckStatus  not null,
+    Time         TIMESTAMP    not null
 );
 
--- TABLES : VERTER ----------------------------------------------------------------------------------
+call LoadCsv('P2P', 'p2p.csv', ',');
 
-DROP TABLE IF EXISTS Verter CASCADE;
-CREATE TABLE Verter (
-  ID SERIAL PRIMARY KEY,
-  CheckID INT NOT NULL REFERENCES Checks(ID),
-  State CheckStatus NOT NULL,
-  Time TIMESTAMP NOT NULL
+-- TABLES : VERTER -----------------------------------------------------------------------------------------------------
+
+drop table if exists Verter cascade;
+create table Verter
+(
+    ID      SERIAL primary key,
+    CheckID INT         not null references Checks (ID),
+    State   CheckStatus not null,
+    Time    TIMESTAMP   not null
 );
 
--- TABLES : TRANSFERRED POINTS ----------------------------------------------------------------------
+call LoadCsv('Verter', 'verter.csv', ',');
 
-DROP TABLE IF EXISTS TransferredPoints CASCADE;
-CREATE TABLE TransferredPoints (
-  ID SERIAL PRIMARY KEY,
-  CheckingPeer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  CheckedPeer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  PointsAmount INT NOT NULL
+-- TABLES : TRANSFERRED POINTS -----------------------------------------------------------------------------------------
+
+drop table if exists TransferredPoints cascade;
+create table TransferredPoints
+(
+    ID           SERIAL primary key,
+    CheckingPeer UserNickname not null references Peers (Nickname),
+    CheckedPeer  UserNickname not null references Peers (Nickname),
+    PointsAmount INT          not null
 );
 
--- TABLES : FRIENDS ---------------------------------------------------------------------------------
+call LoadCsv('TransferredPoints', 'transferred_points.csv', ',');
 
-DROP TABLE IF EXISTS Friends CASCADE;
-CREATE TABLE Friends (
-  ID SERIAL PRIMARY KEY,
-  Peer1 UserNickname NOT NULL REFERENCES Peers(Nickname),
-  Peer2 UserNickname NOT NULL REFERENCES Peers(Nickname)
+-- TABLES : FRIENDS ----------------------------------------------------------------------------------------------------
+
+drop table if exists Friends cascade;
+create table Friends
+(
+    ID    SERIAL primary key,
+    Peer1 UserNickname not null references Peers (Nickname),
+    Peer2 UserNickname not null references Peers (Nickname)
 );
 
--- TABLES : RECOMMENDATIONS -------------------------------------------------------------------------
+call LoadCsv('Friends', 'friends.csv', ',');
 
-DROP TABLE IF EXISTS Recommendations CASCADE;
-CREATE TABLE Recommendations (
-  ID SERIAL PRIMARY KEY,
-  Peer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  RecommendedPeer UserNickname NOT NULL REFERENCES Peers(Nickname)
+-- TABLES : RECOMMENDATIONS --------------------------------------------------------------------------------------------
+
+drop table if exists Recommendations cascade;
+create table Recommendations
+(
+    ID              SERIAL primary key,
+    Peer            UserNickname not null references Peers (Nickname),
+    RecommendedPeer UserNickname not null references Peers (Nickname)
 );
 
--- TABLES : XP --------------------------------------------------------------------------------------
+call LoadCsv('Recommendations', 'recommendations.csv', ',');
 
-DROP TABLE IF EXISTS XP CASCADE;
-CREATE TABLE XP (
-  ID SERIAL PRIMARY KEY,
-  CheckID INT NOT NULL REFERENCES Checks(ID),
-  XPAmount INT NOT NULL
+-- TABLES : XP ---------------------------------------------------------------------------------------------------------
+
+drop table if exists XP cascade;
+create table XP
+(
+    ID       SERIAL primary key,
+    CheckID  INT not null references Checks (ID),
+    XPAmount INT not null
 );
 
+call LoadCsv('XP', 'xp.csv', ',');
 
--- TABLES : TIME TRACKING ---------------------------------------------------------------------------
+-- TABLES : TIME TRACKING ----------------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS TimeTracking CASCADE;
-CREATE TABLE TimeTracking (
-  ID SERIAL PRIMARY KEY,
-  Peer UserNickname NOT NULL REFERENCES Peers(Nickname),
-  Date DATE NOT NULL,
-  Time TIME NOT NULL,
-	State INT NOT NULL
+drop table if exists TimeTracking cascade;
+create table TimeTracking
+(
+    ID    SERIAL primary key,
+    Peer  UserNickname not null references Peers (Nickname),
+    Date  DATE         not null,
+    Time  TIME         not null,
+    State INT          not null
 );
 
+call LoadCsv('TimeTracking', 'time_tracking.csv', ',');

@@ -1,0 +1,9 @@
+ID,CheckingPeer,CheckedPeer,PointsAmount
+0,bmartin,bgates,1
+1,ltorvalds,bgates,1
+2,bstroustrup,bmartin,1
+3,ltorvalds,bstroustrup,1
+4,ltorvalds,bstroustrup,1
+5,bmartin,ltorvalds,1
+6,bmartin,bstroustrup,1
+7,bmartin,bstroustrup,1
