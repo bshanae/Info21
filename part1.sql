@@ -15,7 +15,7 @@ drop procedure if exists LoadCsv;
 create procedure LoadCsv(tablename text, filename text, separator text) as
 $$
 declare
-    dir constant varchar := '/Users/v.belchenko/Workspace/Info21/data/';
+    dir constant varchar := '/Users/v.belchenko/Workspace/Info21/data/init';
 begin
     execute format('COPY %s FROM ''%s'' DELIMITER ''%s'' CSV HEADER', tablename, dir || filename, separator);
 end;
