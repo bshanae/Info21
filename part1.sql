@@ -60,13 +60,31 @@ begin
 end;
 $$ language 'plpgsql';
 
+drop function if exists task_completed(int);
+create function task_completed(_check int) returns BOOLEAN as
+$$
+declare
+begin
+    if last_p2p_status(_check) is distinct from 'Success' then
+        raise warning '[DEBUG] %: failed p2p', _check;
+        return false;
+    end if;
+
+    if last_verter_status(_check) in ('Start', 'Failure') then
+        raise warning '[DEBUG] %: failed verter', _check;
+        return false;
+    end if;
+
+    return true;
+end;
+$$ language 'plpgsql';
+
 drop function if exists task_completed(varchar, varchar);
 create function task_completed(_peer varchar, _task varchar) returns BOOLEAN as
 $$
 declare
     _last_check int;
 begin
-
     select ID
     into _last_check
     from Checks
@@ -78,15 +96,7 @@ begin
         return false;
     end if;
 
-    if last_p2p_status(_last_check) is distinct from 'Success' then
-        return false;
-    end if;
-
-    if last_verter_status(_last_check) in ('Start', 'Failure') then
-        return false;
-    end if;
-
-    return true;
+    return task_completed(_last_check);
 end;
 $$ language 'plpgsql';
 
@@ -273,3 +283,30 @@ create trigger p2p_insertion
     on P2P
     for each row
 execute procedure validate_p2p_insertion();
+
+-- TRIGGERS : VERTER ---------------------------------------------------------------------------------------------------
+
+drop function if exists validate_verter_insertion;
+create function validate_verter_insertion() returns TRIGGER as
+$$
+declare
+    _is_last_start bool;
+    _is_new_start bool;
+begin
+    _is_last_start = last_verter_status(new.CheckID) is not distinct from 'Start';
+    _is_new_start = new.State = 'Start';
+
+    if _is_last_start != _is_new_start then
+        return new;
+    else
+        return old;
+    end if;
+end;
+$$ language 'plpgsql';
+
+drop trigger if exists verter_insertion on Checks;
+create trigger verter_insertion
+    before insert
+    on Verter
+    for each row
+execute procedure validate_verter_insertion();
