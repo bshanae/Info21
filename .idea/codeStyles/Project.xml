@@ -1,0 +1,7 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <SqlCodeStyleSettings version="6">
+      <option name="QUERY_EL_LINE" value="0" />
+    </SqlCodeStyleSettings>
+  </code_scheme>
+</component>
