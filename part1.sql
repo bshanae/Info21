@@ -232,7 +232,6 @@ begin
     from Tasks
     where Title = new.Task;
 
-
     if parentTask is not null and task_completed(new.Peer, parentTask) = false then
         return old;
     end if;
@@ -247,3 +246,30 @@ create trigger checks_insertion
     on Checks
     for each row
 execute procedure validate_checks_insertion();
+
+-- TRIGGERS : P2P ------------------------------------------------------------------------------------------------------
+
+drop function if exists validate_p2p_insertion;
+create function validate_p2p_insertion() returns TRIGGER as
+$$
+declare
+    _is_last_start bool;
+    _is_new_start bool;
+begin
+    _is_last_start = last_p2p_status(new.CheckID) is not distinct from 'Start';
+    _is_new_start = new.State = 'Start';
+
+    if _is_last_start != _is_new_start then
+        return new;
+    else
+        return old;
+    end if;
+end;
+$$ language 'plpgsql';
+
+drop trigger if exists p2p_insertion on Checks;
+create trigger p2p_insertion
+    before insert
+    on P2P
+    for each row
+execute procedure validate_p2p_insertion();
