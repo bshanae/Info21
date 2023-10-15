@@ -178,6 +178,7 @@ create table TransferredPoints
 );
 
 call load_csv('TransferredPoints', 'transferred_points.csv', ',');
+call fix_sequence('TransferredPoints', 'id');
 
 -- TABLES : FRIENDS ----------------------------------------------------------------------------------------------------
 
@@ -190,6 +191,7 @@ create table Friends
 );
 
 call load_csv('Friends', 'friends.csv', ',');
+call fix_sequence('Friends', 'id');
 
 -- TABLES : RECOMMENDATIONS --------------------------------------------------------------------------------------------
 
@@ -202,6 +204,7 @@ create table Recommendations
 );
 
 call load_csv('Recommendations', 'recommendations.csv', ',');
+call fix_sequence('Recommendations', 'id');
 
 -- TABLES : XP ---------------------------------------------------------------------------------------------------------
 
@@ -214,6 +217,7 @@ create table XP
 );
 
 call load_csv('XP', 'xp.csv', ',');
+call fix_sequence('XP', 'id');
 
 -- TABLES : TIME TRACKING ----------------------------------------------------------------------------------------------
 
@@ -228,6 +232,7 @@ create table TimeTracking
 );
 
 call load_csv('TimeTracking', 'time_tracking.csv', ',');
+call fix_sequence('TimeTracking', 'id');
 
 -- TRIGGERS : CHECKS ---------------------------------------------------------------------------------------------------
 
@@ -354,3 +359,31 @@ create trigger xp_insertion
     on XP
     for each row
 execute procedure validate_xp_insertion();
+
+-- TRIGGERS : TIME TRACKING --------------------------------------------------------------------------------------------
+
+drop function if exists validate_time_tracking_insertion;
+create function validate_time_tracking_insertion() returns TRIGGER as
+$$
+declare
+    _last_state int;
+begin
+    select TimeTracking.State
+    from TimeTracking
+    where TimeTracking.Peer = new.Peer
+    into _last_state;
+
+    if _last_state = new.State then
+        return old;
+    end if;
+
+    return new;
+end;
+$$ language 'plpgsql';
+
+drop trigger if exists time_tracking_insertion on Checks;
+create trigger time_tracking_insertion
+    before insert
+    on TimeTracking
+    for each row
+execute procedure validate_time_tracking_insertion();
