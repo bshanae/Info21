@@ -209,7 +209,7 @@ drop table if exists XP cascade;
 create table XP
 (
     ID       serial primary key,
-    CheckID  int not null references Checks (ID),
+    CheckID  int unique not null references Checks (ID),
     XPAmount int not null
 );
 
@@ -235,14 +235,14 @@ drop function if exists validate_checks_insertion;
 create function validate_checks_insertion() returns TRIGGER as
 $$
 declare
-    parentTask varchar;
+    _parent_task varchar;
 begin
     select Tasks.ParentTask
-    into parentTask
+    into _parent_task
     from Tasks
     where Title = new.Task;
 
-    if parentTask is not null and task_completed(new.Peer, parentTask) = false then
+    if _parent_task is not null and task_completed(new.Peer, _parent_task) = false then
         return old;
     end if;
 
@@ -310,3 +310,47 @@ create trigger verter_insertion
     on Verter
     for each row
 execute procedure validate_verter_insertion();
+
+-- TRIGGERS : XP -------------------------------------------------------------------------------------------------------
+
+drop function if exists validate_xp_insertion;
+create function validate_xp_insertion() returns TRIGGER as
+$$
+declare
+    _peer varchar;
+    _task varchar;
+    _max_xp int;
+begin
+    select Checks.Peer
+    into _peer
+    from Checks
+    where Checks.ID = new.CheckID;
+
+    select Checks.Task
+    into _task
+    from Checks
+    where Checks.ID = new.CheckID;
+
+    if task_completed(_peer, _task) = false then
+        return old;
+    end if;
+
+    select Tasks.MaxXP
+    into _max_xp
+    from Tasks
+    where Tasks.Title = _task;
+
+    if new.XPAmount > _max_xp then
+        return old;
+    end if;
+
+    return new;
+end;
+$$ language 'plpgsql';
+
+drop trigger if exists xp_insertion on Checks;
+create trigger xp_insertion
+    before insert
+    on XP
+    for each row
+execute procedure validate_xp_insertion();
