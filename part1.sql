@@ -6,23 +6,23 @@ create type CheckStatus as enum ( 'Start', 'Success', 'Failure' );
 -- PROCEDURES ----------------------------------------------------------------------------------------------------------
 
 drop procedure if exists load_csv;
-create procedure load_csv(tablename text, filename text, separator text) as
+create procedure load_csv(_tablename text, _filename text, _separator text) as
 $$
 declare
     dir constant varchar := '/Users/v.belchenko/Workspace/Info21/data/init/';
 begin
     execute format('copy %s from ''%s'' delimiter ''%s'' csv header',
-                   tablename, dir || filename, separator);
+                   _tablename, dir || _filename, _separator);
 end;
 $$ language 'plpgsql';
 
 drop procedure if exists fix_sequence;
-create procedure fix_sequence(tablename text, sequence_column text) as
+create procedure fix_sequence(_tablename text, _sequence_column text) as
 $$
 declare
 begin
-    execute format('select setval(pg_get_serial_sequence(''%s'', ''%s''), (select max(%s) from %s))', tablename,
-                   sequence_column, sequence_column, tablename);
+    execute format('select setval(pg_get_serial_sequence(''%s'', ''%s''), (select max(%s) from %s))', _tablename,
+                   _sequence_column, _sequence_column, _tablename);
 end;
 $$ language 'plpgsql';
 
@@ -213,7 +213,7 @@ create table XP
 (
     ID       serial primary key,
     CheckID  int unique not null references Checks (ID),
-    XPAmount int not null
+    XPAmount int        not null
 );
 
 call load_csv('XP', 'xp.csv', ',');
@@ -269,7 +269,7 @@ create function validate_p2p_insertion() returns TRIGGER as
 $$
 declare
     _is_last_start bool;
-    _is_new_start bool;
+    _is_new_start  bool;
 begin
     _is_last_start = last_p2p_status(new.CheckID) is not distinct from 'Start';
     _is_new_start = new.State = 'Start';
@@ -296,7 +296,7 @@ create function validate_verter_insertion() returns TRIGGER as
 $$
 declare
     _is_last_start bool;
-    _is_new_start bool;
+    _is_new_start  bool;
 begin
     _is_last_start = last_verter_status(new.CheckID) is not distinct from 'Start';
     _is_new_start = new.State = 'Start';
@@ -322,8 +322,8 @@ drop function if exists validate_xp_insertion;
 create function validate_xp_insertion() returns TRIGGER as
 $$
 declare
-    _peer varchar;
-    _task varchar;
+    _peer   varchar;
+    _task   varchar;
     _max_xp int;
 begin
     select Checks.Peer
