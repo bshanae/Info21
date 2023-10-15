@@ -1,6 +1,6 @@
 -- TASK 1 --------------------------------------------------------------------------------------------------------------
 
-drop procedure if exists register_p2p_check;
+drop procedure if exists register_p2p_check cascade;
 create procedure register_p2p_check(_checkee varchar,
                                     _checker varchar,
                                     _task varchar,
@@ -33,9 +33,42 @@ begin
 end;
 $$ language 'plpgsql';
 
+-- TASK 3 --------------------------------------------------------------------------------------------------------------
+
+drop function if exists process_p2p_insertion cascade;
+create function process_p2p_insertion() returns TRIGGER as
+$$
+declare
+    _checked_peer varchar;
+begin
+    if new.state = 'Start' then
+        select peer
+        from checks
+        where id = new.checkid
+        into _checked_peer;
+
+        if _checked_peer is null then
+            raise exception 'Checked peer not found';
+        end if;
+
+        insert into transferredpoints (checkingpeer, checkedpeer, pointsamount)
+        values (new.checkingpeer, _checked_peer, 1);
+    end if;
+
+    return null;
+end;
+$$ language 'plpgsql';
+
+drop trigger if exists after_p2p_insertion on Checks;
+create trigger after_p2p_insertion
+    after insert
+    on p2p
+    for each row
+execute procedure process_p2p_insertion();
+
 -- TASK 4 --------------------------------------------------------------------------------------------------------------
 
-drop function if exists validate_xp_insertion;
+drop function if exists validate_xp_insertion cascade;
 create function validate_xp_insertion() returns TRIGGER as
 $$
 declare
@@ -72,8 +105,8 @@ begin
 end;
 $$ language 'plpgsql';
 
-drop trigger if exists xp_insertion on Checks;
-create trigger xp_insertion
+drop trigger if exists before_xp_insertion on Checks cascade;
+create trigger before_xp_insertion
     before insert
     on XP
     for each row

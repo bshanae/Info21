@@ -256,8 +256,8 @@ begin
 end;
 $$ language 'plpgsql';
 
-drop trigger if exists checks_insertion on Checks;
-create trigger checks_insertion
+drop trigger if exists before_checks_insertion on Checks;
+create trigger before_checks_insertion
     before insert
     on Checks
     for each row
@@ -284,8 +284,8 @@ begin
 end;
 $$ language 'plpgsql';
 
-drop trigger if exists p2p_insertion on Checks;
-create trigger p2p_insertion
+drop trigger if exists before_p2p_insertion on Checks;
+create trigger before_p2p_insertion
     before insert
     on P2P
     for each row
@@ -312,8 +312,8 @@ begin
 end;
 $$ language 'plpgsql';
 
-drop trigger if exists verter_insertion on Checks;
-create trigger verter_insertion
+drop trigger if exists before_verter_insertion on Checks;
+create trigger before_verter_insertion
     before insert
     on Verter
     for each row
@@ -341,8 +341,8 @@ begin
 end;
 $$ language 'plpgsql';
 
-drop trigger if exists time_tracking_insertion on Checks;
-create trigger time_tracking_insertion
+drop trigger if exists before_time_tracking_insertion on Checks;
+create trigger before_time_tracking_insertion
     before insert
     on TimeTracking
     for each row
