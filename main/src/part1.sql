@@ -319,52 +319,6 @@ create trigger verter_insertion
     for each row
 execute procedure validate_verter_insertion();
 
--- TRIGGERS : XP -------------------------------------------------------------------------------------------------------
-
-drop function if exists validate_xp_insertion;
-create function validate_xp_insertion() returns TRIGGER as
-$$
-declare
-    _peer   varchar;
-    _task   varchar;
-    _max_xp int;
-begin
-    select Checks.Peer
-    into _peer
-    from Checks
-    where Checks.ID = new.CheckID;
-
-    select Checks.Task
-    into _task
-    from Checks
-    where Checks.ID = new.CheckID;
-
-    if task_completed(_peer, _task) = false then
-        raise warning 'Can''t insert into xp: task is not completed';
-        return old;
-    end if;
-
-    select Tasks.MaxXP
-    into _max_xp
-    from Tasks
-    where Tasks.Title = _task;
-
-    if new.XPAmount > _max_xp then
-        raise warning 'Can''t insert into xp: invalid xp amount';
-        return old;
-    end if;
-
-    return new;
-end;
-$$ language 'plpgsql';
-
-drop trigger if exists xp_insertion on Checks;
-create trigger xp_insertion
-    before insert
-    on XP
-    for each row
-execute procedure validate_xp_insertion();
-
 -- TRIGGERS : TIME TRACKING --------------------------------------------------------------------------------------------
 
 drop function if exists validate_time_tracking_insertion;
