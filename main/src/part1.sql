@@ -248,6 +248,7 @@ begin
     where Title = new.Task;
 
     if _parent_task is not null and task_completed(new.Peer, _parent_task) = false then
+        raise warning 'Can''t insert into checks: required task "%" is not completed', _parent_task;
         return old;
     end if;
 
@@ -277,6 +278,7 @@ begin
     if _is_last_start != _is_new_start then
         return new;
     else
+        raise warning 'Can''t insert into p2p: unexpected state of previous check';
         return old;
     end if;
 end;
@@ -304,6 +306,7 @@ begin
     if _is_last_start != _is_new_start then
         return new;
     else
+        raise warning 'Can''t insert into verter: unexpected state of previous check';
         return old;
     end if;
 end;
@@ -337,6 +340,7 @@ begin
     where Checks.ID = new.CheckID;
 
     if task_completed(_peer, _task) = false then
+        raise warning 'Can''t insert into xp: task is not completed';
         return old;
     end if;
 
@@ -346,6 +350,7 @@ begin
     where Tasks.Title = _task;
 
     if new.XPAmount > _max_xp then
+        raise warning 'Can''t insert into xp: invalid xp amount';
         return old;
     end if;
 
@@ -374,6 +379,7 @@ begin
     into _last_state;
 
     if _last_state = new.State then
+        raise warning 'Can''t insert into time tracking: unexpected previous state';
         return old;
     end if;
 
