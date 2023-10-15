@@ -2,6 +2,9 @@
   <code_scheme name="Project" version="173">
     <SqlCodeStyleSettings version="6">
       <option name="QUERY_EL_LINE" value="0" />
+      <option name="WHERE_EL_WRAP" value="0" />
+      <option name="EXPR_CASE_WHEN_WRAP" value="false" />
+      <option name="EXPR_CASE_COLLAPSE" value="false" />
     </SqlCodeStyleSettings>
   </code_scheme>
 </component>
