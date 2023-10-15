@@ -9,7 +9,7 @@ drop procedure if exists load_csv;
 create procedure load_csv(_tablename text, _filename text, _separator text) as
 $$
 declare
-    dir constant varchar := '/Users/v.belchenko/Workspace/Info21/data/init/';
+    dir constant varchar := '/Users/v.belchenko/Workspace/Info21/main/data/init/';
 begin
     execute format('copy %s from ''%s'' delimiter ''%s'' csv header',
                    _tablename, dir || _filename, _separator);
