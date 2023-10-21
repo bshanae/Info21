@@ -121,7 +121,6 @@ begin
 end;
 $$ language 'plpgsql';
 
-
 drop function if exists get_analytics_on_two_blocks cascade;
 create function get_analytics_on_two_blocks(_block1 varchar, _block2 varchar)
     returns table
@@ -144,5 +143,25 @@ begin
                         cast((sum(least(started1, started2)) * 100 / count(*)) as int)        as StartedBothBlocks,
                         cast((sum(1 - greatest(started1, started2)) * 100 / count(*)) as int) as DidntStartAnyBlock
                  from blocks_started;
+end;
+$$ language 'plpgsql';
+
+-- TASK 11 -------------------------------------------------------------------------------------------------------------
+
+drop function if exists get_peers_who_completed_12_but_not_3 cascade;
+create function get_peers_who_completed_12_but_not_3(_task1 varchar, _task2 varchar, _task3 varchar)
+    returns table
+            (
+                Peer varchar
+            )
+as
+$$
+declare
+begin
+    return query select nickname as Peer
+                 from peers
+                 where task_completed(nickname, _task1)
+                   and task_completed(nickname, _task2)
+                   and not task_completed(nickname, _task3);
 end;
 $$ language 'plpgsql';
