@@ -12,20 +12,19 @@ as
 $$
 declare
 begin
-    return query with recursive
-                     reversed_points as (select transferredpoints.checkedpeer       as checkingpeer,
-                                                transferredpoints.checkingpeer      as checkedpeer,
-                                                transferredpoints.pointsamount * -1 as pointsamount
-                                         from transferredpoints),
-                     merged_points as (select reversed_points.checkingpeer,
-                                              reversed_points.checkedpeer,
-                                              reversed_points.pointsamount
-                                       from reversed_points
-                                       union all
-                                       select transferredpoints.checkingpeer,
-                                              transferredpoints.checkedpeer,
-                                              transferredpoints.pointsamount
-                                       from transferredpoints)
+    return query with reversed_points as (select transferredpoints.checkedpeer       as checkingpeer,
+                                                 transferredpoints.checkingpeer      as checkedpeer,
+                                                 transferredpoints.pointsamount * -1 as pointsamount
+                                          from transferredpoints),
+                      merged_points as (select reversed_points.checkingpeer,
+                                               reversed_points.checkedpeer,
+                                               reversed_points.pointsamount
+                                        from reversed_points
+                                        union all
+                                        select transferredpoints.checkingpeer,
+                                               transferredpoints.checkedpeer,
+                                               transferredpoints.pointsamount
+                                        from transferredpoints)
                  select merged_points.checkingpeer                   as Peer1,
                         merged_points.checkedpeer                    as Peer2,
                         cast(sum(merged_points.pointsamount) as int) as PointsAmount
@@ -76,5 +75,35 @@ begin
     return query select Peer1 as Peer, cast(sum(PointsAmount) as int) as PointsChange
                  from aggregate_transferred_points()
                  group by Peer1;
+end;
+$$ language 'plpgsql';
+
+-- TASK 7 --------------------------------------------------------------------------------------------------------------
+
+drop function if exists get_peers_with_completed_task_block cascade;
+create function get_peers_with_completed_task_block(_block varchar)
+    returns table
+            (
+                Peer varchar
+            )
+as
+$$
+declare
+    _last_block_task varchar;
+begin
+    with target_block_tasks as (select title, parenttask
+                                from tasks
+                                where starts_with(title, _block)),
+         child_tasks as (select t1.title, t2.title as childtask
+                         from target_block_tasks t1
+                                  left join target_block_tasks t2 on t1.title = t2.parenttask)
+    select title
+    from child_tasks
+    where childtask is null
+    into _last_block_task;
+
+    return query select nickname as Peer
+                 from peers
+                 where task_completed(nickname, _last_block_task);
 end;
 $$ language 'plpgsql';
