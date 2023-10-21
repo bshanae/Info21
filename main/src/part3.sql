@@ -107,3 +107,42 @@ begin
                  where task_completed(nickname, _last_block_task);
 end;
 $$ language 'plpgsql';
+
+-- TASK 9 --------------------------------------------------------------------------------------------------------------
+
+drop function if exists block_started(varchar, varchar);
+create function block_started(_peer varchar, _block varchar) returns BOOLEAN as
+$$
+declare
+begin
+    return (select count(*)
+            from checks
+            where peer = _peer and starts_with(task, _block)) > 0;
+end;
+$$ language 'plpgsql';
+
+
+drop function if exists get_analytics_on_two_blocks cascade;
+create function get_analytics_on_two_blocks(_block1 varchar, _block2 varchar)
+    returns table
+            (
+                StartedBlock1      int,
+                StartedBlock2      int,
+                StartedBothBlocks  int,
+                DidntStartAnyBlock int
+            )
+as
+$$
+declare
+begin
+    return query with blocks_started as (select nickname,
+                                                cast(block_started(nickname, _block1) as int) as started1,
+                                                cast(block_started(nickname, _block2) as int) as started2
+                                         from peers)
+                 select cast((sum(started1) * 100 / count(*)) as int)                         as StartedBlock1,
+                        cast((sum(started2) * 100 / count(*)) as int)                         as StartedBlock2,
+                        cast((sum(least(started1, started2)) * 100 / count(*)) as int)        as StartedBothBlocks,
+                        cast((sum(1 - greatest(started1, started2)) * 100 / count(*)) as int) as DidntStartAnyBlock
+                 from blocks_started;
+end;
+$$ language 'plpgsql';
