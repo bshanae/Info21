@@ -59,3 +59,22 @@ begin
                  where (select d.duration as days) > interval '1 day';
 end;
 $$ language 'plpgsql';
+
+-- TASK 5 --------------------------------------------------------------------------------------------------------------
+
+drop function if exists get_points_change cascade;
+create function get_points_change()
+    returns table
+            (
+                Peer         varchar,
+                PointsChange int
+            )
+as
+$$
+declare
+begin
+    return query select Peer1 as Peer, cast(sum(PointsAmount) as int) as PointsChange
+                 from aggregate_transferred_points()
+                 group by Peer1;
+end;
+$$ language 'plpgsql';
