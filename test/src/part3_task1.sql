@@ -13,25 +13,25 @@ $$
 
         select pointsamount
         from aggregate_transferred_points()
-        where checkingpeer = 'edijkstra' and checkedpeer = 'ltorvalds'
+        where peer1 = 'edijkstra' and peer2 = 'ltorvalds'
         into _points_amount;
         assert (_points_amount = 2);
 
         select pointsamount
         from aggregate_transferred_points()
-        where checkingpeer = 'ltorvalds' and checkedpeer = 'edijkstra'
+        where peer1 = 'ltorvalds' and peer2 = 'edijkstra'
         into _points_amount;
         assert (_points_amount = -2);
 
         select pointsamount
         from aggregate_transferred_points()
-        where checkingpeer = 'bgates' and checkedpeer = 'bmartin'
+        where peer1 = 'bgates' and peer2 = 'bmartin'
         into _points_amount;
         assert (_points_amount = 1);
 
         select pointsamount
         from aggregate_transferred_points()
-        where checkingpeer = 'bmartin' and checkedpeer = 'bgates'
+        where peer1 = 'bmartin' and peer2 = 'bgates'
         into _points_amount;
         assert (_points_amount = -1);
 

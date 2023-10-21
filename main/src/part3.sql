@@ -4,8 +4,8 @@ drop function if exists aggregate_transferred_points cascade;
 create function aggregate_transferred_points()
     returns table
             (
-                CheckingPeer varchar,
-                CheckedPeer  varchar,
+                Peer1        varchar,
+                Peer2        varchar,
                 PointsAmount int
             )
 as
@@ -26,9 +26,9 @@ begin
                                               transferredpoints.checkedpeer,
                                               transferredpoints.pointsamount
                                        from transferredpoints)
-                 select merged_points.checkingpeer,
-                        merged_points.checkedpeer,
-                        cast(sum(merged_points.pointsamount) as int)
+                 select merged_points.checkingpeer                   as Peer1,
+                        merged_points.checkedpeer                    as Peer2,
+                        cast(sum(merged_points.pointsamount) as int) as PointsAmount
                  from merged_points
                  group by merged_points.checkedpeer, merged_points.checkingpeer;
 end;
@@ -37,7 +37,11 @@ $$ language 'plpgsql';
 -- TASK 3 --------------------------------------------------------------------------------------------------------------
 
 drop function if exists find_crazy_peer cascade;
-create function find_crazy_peer(_date date) returns table(Peer varchar)
+create function find_crazy_peer(_date date)
+    returns table
+            (
+                Peer varchar
+            )
 as
 $$
 declare
