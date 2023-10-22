@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Setup" type="DatabaseScript">
+    <script-file value="$PROJECT_DIR$/main/src/part1.sql" />
+    <script-file value="$PROJECT_DIR$/main/src/part2.sql" />
+    <script-file value="$PROJECT_DIR$/main/src/part3.sql" />
+    <script-mode>FILE</script-mode>
+    <data-source id="383ec0a7-7f37-4888-8fd0-b034e2bc0477" namespace="database/&quot;postgres&quot;" />
+    <method v="2" />
+  </configuration>
+</component>

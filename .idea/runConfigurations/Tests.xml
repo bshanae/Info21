@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tests" type="DatabaseScript">
+    <script-file value="$PROJECT_DIR$/test/src/helpers.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part1_checks.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part1_p2p.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part1_time_tracking.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part1_verter.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part2_task1.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part2_task3.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part2_task4.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task1.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task3.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task5.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task7.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task9.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task11.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task13.sql" />
+    <script-file value="$PROJECT_DIR$/test/src/part3_task15.sql" />
+    <script-mode>FILE</script-mode>
+    <data-source id="383ec0a7-7f37-4888-8fd0-b034e2bc0477" namespace="database/&quot;postgres&quot;/schema/&quot;public&quot;" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Setup" run_configuration_type="DatabaseScript" />
+    </method>
+  </configuration>
+</component>
