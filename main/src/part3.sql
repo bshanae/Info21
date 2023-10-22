@@ -12,24 +12,24 @@ as
 $$
 declare
 begin
-    return query with reversed_points as (select transferredpoints.checkedpeer       as checkingpeer,
-                                                 transferredpoints.checkingpeer      as checkedpeer,
+    return query with reversed_points as (select checkedpeer                         as checkingpeer,
+                                                 checkingpeer                        as checkedpeer,
                                                  transferredpoints.pointsamount * -1 as pointsamount
                                           from transferredpoints),
-                      merged_points as (select reversed_points.checkingpeer,
-                                               reversed_points.checkedpeer,
-                                               reversed_points.pointsamount
-                                        from reversed_points
+                      merged_points as (select rp.checkingpeer,
+                                               rp.checkedpeer,
+                                               rp.pointsamount
+                                        from reversed_points as rp
                                         union all
-                                        select transferredpoints.checkingpeer,
-                                               transferredpoints.checkedpeer,
-                                               transferredpoints.pointsamount
-                                        from transferredpoints)
-                 select merged_points.checkingpeer                   as Peer1,
-                        merged_points.checkedpeer                    as Peer2,
+                                        select tp.checkingpeer,
+                                               tp.checkedpeer,
+                                               tp.pointsamount
+                                        from transferredpoints as tp)
+                 select checkingpeer                                 as Peer1,
+                        checkedpeer                                  as Peer2,
                         cast(sum(merged_points.pointsamount) as int) as PointsAmount
                  from merged_points
-                 group by merged_points.checkedpeer, merged_points.checkingpeer;
+                 group by checkedpeer, checkingpeer;
 end;
 $$ language 'plpgsql';
 
