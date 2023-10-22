@@ -25,3 +25,23 @@ begin
     values (_check, (_max_xp * _xp_rate)::int);
 end;
 $$ language 'plpgsql';
+
+drop procedure if exists enter_campus cascade;
+create procedure enter_campus(_peer varchar, _time timestamp) as
+$$
+declare
+begin
+    insert into timetracking(peer, date, time, state)
+    values (_peer, date(_time), _time::time, 1);
+end;
+$$ language 'plpgsql';
+
+drop procedure if exists leave_campus cascade;
+create procedure leave_campus(_peer varchar, _time timestamp) as
+$$
+declare
+begin
+    insert into timetracking(peer, date, time, state)
+    values (_peer, date(_time), _time::time, 2);
+end;
+$$ language 'plpgsql';

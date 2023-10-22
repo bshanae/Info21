@@ -330,6 +330,8 @@ begin
     select TimeTracking.State
     from TimeTracking
     where TimeTracking.Peer = new.Peer
+    order by id desc
+    limit 1
     into _last_state;
 
     if _last_state = new.State then

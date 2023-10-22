@@ -216,3 +216,24 @@ begin
                  where max_success_count >= _n;
 end;
 $$ language 'plpgsql';
+
+-- TASK 15 -------------------------------------------------------------------------------------------------------------
+
+drop function if exists find_peers_who_came_before_time_t_at_least_n_times cascade;
+create function find_peers_who_came_before_time_t_at_least_n_times(_t time, _n int)
+    returns table
+            (
+                Peer varchar
+            )
+as
+$$
+declare
+begin
+    return query select peers_n_enter_count.peer
+                 from (select timetracking.peer, count(*) as enter_count
+                       from timetracking
+                       where state = 1 and time < _t
+                       group by timetracking.peer) peers_n_enter_count
+                 where peers_n_enter_count.enter_count >= _n;
+end;
+$$ language 'plpgsql';
