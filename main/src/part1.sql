@@ -5,8 +5,8 @@ create type CheckStatus as enum ( 'Start', 'Success', 'Failure' );
 
 -- PROCEDURES ----------------------------------------------------------------------------------------------------------
 
-drop procedure if exists load_csv;
-create procedure load_csv(_tablename text, _filename text, _separator text) as
+drop procedure if exists read_csv;
+create procedure read_csv(_tablename text, _filename text, _separator text) as
 $$
 declare
     dir constant varchar := '/Users/v.belchenko/Workspace/Info21/main/data/init/';
@@ -109,7 +109,7 @@ create table Peers
     Birthday DATE
 );
 
-call load_csv('Peers', 'peers.csv', ',');
+call read_csv('Peers', 'peers.csv', ',');
 
 -- TABLES : TASKS ------------------------------------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ create table Tasks
     MaxXP      int not null
 );
 
-call load_csv('Tasks', 'tasks.csv', ',');
+call read_csv('Tasks', 'tasks.csv', ',');
 
 -- TABLES : CHECKS -----------------------------------------------------------------------------------------------------
 
@@ -134,7 +134,7 @@ create table Checks
     Date DATE    not null
 );
 
-call load_csv('Checks', 'checks.csv', ',');
+call read_csv('Checks', 'checks.csv', ',');
 call fix_sequence('Checks', 'id');
 
 -- TABLES : P2P --------------------------------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ create table P2P
     Time         TIMESTAMP   not null
 );
 
-call load_csv('P2P', 'p2p.csv', ',');
+call read_csv('P2P', 'p2p.csv', ',');
 call fix_sequence('P2P', 'id');
 
 -- TABLES : VERTER -----------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ create table Verter
     Time    TIMESTAMP   not null
 );
 
-call load_csv('Verter', 'verter.csv', ',');
+call read_csv('Verter', 'verter.csv', ',');
 call fix_sequence('Verter', 'id');
 
 -- TABLES : TRANSFERRED POINTS -----------------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ create table TransferredPoints
     PointsAmount int     not null
 );
 
-call load_csv('TransferredPoints', 'transferred_points.csv', ',');
+call read_csv('TransferredPoints', 'transferred_points.csv', ',');
 call fix_sequence('TransferredPoints', 'id');
 
 -- TABLES : FRIENDS ----------------------------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ create table Friends
     Peer2 varchar not null references Peers (Nickname)
 );
 
-call load_csv('Friends', 'friends.csv', ',');
+call read_csv('Friends', 'friends.csv', ',');
 call fix_sequence('Friends', 'id');
 
 -- TABLES : RECOMMENDATIONS --------------------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ create table Recommendations
     RecommendedPeer varchar not null references Peers (Nickname)
 );
 
-call load_csv('Recommendations', 'recommendations.csv', ',');
+call read_csv('Recommendations', 'recommendations.csv', ',');
 call fix_sequence('Recommendations', 'id');
 
 -- TABLES : XP ---------------------------------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ create table XP
     XPAmount int        not null
 );
 
-call load_csv('XP', 'xp.csv', ',');
+call read_csv('XP', 'xp.csv', ',');
 call fix_sequence('XP', 'id');
 
 -- TABLES : TIME TRACKING ----------------------------------------------------------------------------------------------
@@ -231,7 +231,7 @@ create table TimeTracking
     State int     not null
 );
 
-call load_csv('TimeTracking', 'time_tracking.csv', ',');
+call read_csv('TimeTracking', 'time_tracking.csv', ',');
 call fix_sequence('TimeTracking', 'id');
 
 -- TRIGGERS : CHECKS ---------------------------------------------------------------------------------------------------
