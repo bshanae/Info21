@@ -237,3 +237,34 @@ begin
                  where peers_x_enter_count.enter_count >= _n;
 end;
 $$ language 'plpgsql';
+
+-- TASK 17 -------------------------------------------------------------------------------------------------------------
+
+drop function if exists find_percentage_of_early_entries cascade;
+create function find_percentage_of_early_entries()
+    returns table
+            (
+                Month        text,
+                EarlyEntries int
+            )
+as
+$$
+declare
+begin
+    return query with entries_x_birth_month as (select timetracking.peer,
+                                                       timetracking.date as enter_date,
+                                                       extract(month from timetracking.date)::int as enter_month,
+                                                       timetracking.time,
+                                                       extract(month from peers.birthday) as birthday_month
+                                                from timetracking
+                                                         left join peers on timetracking.peer = peers.nickname
+                                                where state = 1),
+                      entries_info as (select enter_month,
+                                              (time < time '12:00') as early
+                                       from entries_x_birth_month
+                                       where enter_month = birthday_month)
+                 select to_char(make_date(1, enter_month, 1), 'Month') as month, (sum(early::int) * 100 / count(*))::int as EarlyEntries
+                 from entries_info
+                 group by enter_month;
+end;
+$$ language 'plpgsql';

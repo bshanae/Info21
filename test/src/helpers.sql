@@ -1,3 +1,13 @@
+drop procedure if exists register_peer cascade;
+create procedure register_peer(_nickname varchar, _birthday date) as
+$$
+declare
+begin
+    insert into peers(nickname, birthday)
+    values (_nickname, _birthday);
+end;
+$$ language 'plpgsql';
+
 drop procedure if exists complete_project cascade;
 create procedure complete_project(_peer varchar, _task varchar, _xp_rate real) as
 $$
@@ -43,5 +53,15 @@ declare
 begin
     insert into timetracking(peer, date, time, state)
     values (_peer, date(_time), _time::time, 2);
+end;
+$$ language 'plpgsql';
+
+drop procedure if exists enter_and_leave_campus cascade;
+create procedure enter_and_leave_campus(_peer varchar, _enter_time timestamp) as
+$$
+declare
+begin
+    call enter_campus(_peer, _enter_time);
+    call leave_campus(_peer, _enter_time + interval '00:10');
 end;
 $$ language 'plpgsql';
