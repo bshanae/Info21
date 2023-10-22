@@ -183,36 +183,36 @@ begin
                                                 (select maxxp from tasks where tasks.title = checks.task) as xp_map
                                          from checks
                                                   left join xp on checks.id = xp.checkid),
-                      checks_n_success as (select check_id,
+                      checks_x_success as (select check_id,
                                                   (xp_actual::real / xp_map >= 0.8) as check_success
                                            from checks_xp_info),
-                      checks_n_dates as (select checks.id as check_id,
+                      checks_x_dates as (select checks.id as check_id,
                                                 date((select p2p.time
                                                       from p2p
                                                       where p2p.checkid = checks.id
                                                       order by p2p.time
                                                       limit 1)) as check_date
                                          from checks),
-                      checks_n_dates_n_success as (select checks_n_dates.check_id,
-                                                          checks_n_dates.check_date,
-                                                          checks_n_success.check_success
-                                                   from checks_n_dates
-                                                            left join checks_n_success using (check_id)),
-                      checks_n_dates_n_status_count as (select check_date,
+                      checks_x_dates_x_success as (select checks_x_dates.check_id,
+                                                          checks_x_dates.check_date,
+                                                          checks_x_success.check_success
+                                                   from checks_x_dates
+                                                            left join checks_x_success using (check_id)),
+                      checks_x_dates_x_status_count as (select check_date,
                                                                check_success,
                                                                count(*) as status_count
-                                                        from (select checks_n_dates_n_success.*,
+                                                        from (select checks_x_dates_x_success.*,
                                                                      (row_number() over (partition by check_date order by check_id) -
                                                                       row_number() over (partition by check_date, check_success order by check_id)) as sequence_id
-                                                              from checks_n_dates_n_success) with_sequence_id
+                                                              from checks_x_dates_x_success) with_sequence_id
                                                         group by check_date, check_success, sequence_id),
-                      checks_n_dates_n_max_success_count as (select check_date,
+                      checks_x_dates_x_max_success_count as (select check_date,
                                                                     max(status_count) as max_success_count
-                                                             from checks_n_dates_n_status_count
+                                                             from checks_x_dates_x_status_count
                                                              where check_success = true
                                                              group by check_date)
                  select check_date as day
-                 from checks_n_dates_n_max_success_count
+                 from checks_x_dates_x_max_success_count
                  where max_success_count >= _n;
 end;
 $$ language 'plpgsql';
@@ -229,11 +229,11 @@ as
 $$
 declare
 begin
-    return query select peers_n_enter_count.peer
+    return query select peers_x_enter_count.peer
                  from (select timetracking.peer, count(*) as enter_count
                        from timetracking
                        where state = 1 and time < _t
-                       group by timetracking.peer) peers_n_enter_count
-                 where peers_n_enter_count.enter_count >= _n;
+                       group by timetracking.peer) peers_x_enter_count
+                 where peers_x_enter_count.enter_count >= _n;
 end;
 $$ language 'plpgsql';
