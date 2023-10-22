@@ -12,8 +12,8 @@ as
 $$
 declare
 begin
-    return query with reversed_points as (select checkedpeer                         as checkingpeer,
-                                                 checkingpeer                        as checkedpeer,
+    return query with reversed_points as (select checkedpeer as checkingpeer,
+                                                 checkingpeer as checkedpeer,
                                                  transferredpoints.pointsamount * -1 as pointsamount
                                           from transferredpoints),
                       merged_points as (select rp.checkingpeer,
@@ -25,8 +25,8 @@ begin
                                                tp.checkedpeer,
                                                tp.pointsamount
                                         from transferredpoints as tp)
-                 select checkingpeer                                 as Peer1,
-                        checkedpeer                                  as Peer2,
+                 select checkingpeer as Peer1,
+                        checkedpeer as Peer2,
                         cast(sum(merged_points.pointsamount) as int) as PointsAmount
                  from merged_points
                  group by checkedpeer, checkingpeer;
@@ -138,9 +138,9 @@ begin
                                                 cast(block_started(nickname, _block1) as int) as started1,
                                                 cast(block_started(nickname, _block2) as int) as started2
                                          from peers)
-                 select cast((sum(started1) * 100 / count(*)) as int)                         as StartedBlock1,
-                        cast((sum(started2) * 100 / count(*)) as int)                         as StartedBlock2,
-                        cast((sum(least(started1, started2)) * 100 / count(*)) as int)        as StartedBothBlocks,
+                 select cast((sum(started1) * 100 / count(*)) as int) as StartedBlock1,
+                        cast((sum(started2) * 100 / count(*)) as int) as StartedBlock2,
+                        cast((sum(least(started1, started2)) * 100 / count(*)) as int) as StartedBothBlocks,
                         cast((sum(1 - greatest(started1, started2)) * 100 / count(*)) as int) as DidntStartAnyBlock
                  from blocks_started;
 end;
@@ -163,5 +163,56 @@ begin
                  where task_completed(nickname, _task1)
                    and task_completed(nickname, _task2)
                    and not task_completed(nickname, _task3);
+end;
+$$ language 'plpgsql';
+
+-- TASK 13 -------------------------------------------------------------------------------------------------------------
+
+drop function if exists find_lucky_days cascade;
+create function find_lucky_days(_n int)
+    returns table
+            (
+                day date
+            )
+as
+$$
+declare
+begin
+    return query with checks_xp_info as (select checks.id as check_id,
+                                                xp.xpamount as xp_actual,
+                                                (select maxxp from tasks where tasks.title = checks.task) as xp_map
+                                         from checks
+                                                  left join xp on checks.id = xp.checkid),
+                      checks_n_success as (select check_id,
+                                                  (xp_actual::real / xp_map >= 0.8) as check_success
+                                           from checks_xp_info),
+                      checks_n_dates as (select checks.id as check_id,
+                                                date((select p2p.time
+                                                      from p2p
+                                                      where p2p.checkid = checks.id
+                                                      order by p2p.time
+                                                      limit 1)) as check_date
+                                         from checks),
+                      checks_n_dates_n_success as (select checks_n_dates.check_id,
+                                                          checks_n_dates.check_date,
+                                                          checks_n_success.check_success
+                                                   from checks_n_dates
+                                                            left join checks_n_success using (check_id)),
+                      checks_n_dates_n_status_count as (select check_date,
+                                                               check_success,
+                                                               count(*) as status_count
+                                                        from (select checks_n_dates_n_success.*,
+                                                                     (row_number() over (partition by check_date order by check_id) -
+                                                                      row_number() over (partition by check_date, check_success order by check_id)) as sequence_id
+                                                              from checks_n_dates_n_success) with_sequence_id
+                                                        group by check_date, check_success, sequence_id),
+                      checks_n_dates_n_max_success_count as (select check_date,
+                                                                    max(status_count) as max_success_count
+                                                             from checks_n_dates_n_status_count
+                                                             where check_success = true
+                                                             group by check_date)
+                 select check_date as day
+                 from checks_n_dates_n_max_success_count
+                 where max_success_count >= _n;
 end;
 $$ language 'plpgsql';

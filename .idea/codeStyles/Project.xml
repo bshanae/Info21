@@ -1,8 +1,11 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <option name="RIGHT_MARGIN" value="200" />
+    <option name="SOFT_MARGINS" value="120" />
     <SqlCodeStyleSettings version="6">
       <option name="QUERY_EL_LINE" value="0" />
       <option name="WITH_EL_WRAP" value="0" />
+      <option name="SELECT_ALIGN_AS" value="false" />
       <option name="WHERE_EL_WRAP" value="0" />
       <option name="EXPR_CASE_WHEN_WRAP" value="false" />
       <option name="EXPR_CASE_COLLAPSE" value="false" />
